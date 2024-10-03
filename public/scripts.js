@@ -5,9 +5,10 @@ let state = {
   threadId: null,
   messages: [],
 };
-async function getAssistant(){
+
+async function getAssistant() {
   let name = document.getElementById('assistant_name').value;
-  console.log(`assistant_id: ${name}`)
+  console.log(`assistant_id: ${name}`);
   const response = await fetch('/api/assistants', {
     method: 'POST',
     headers: {
@@ -15,23 +16,60 @@ async function getAssistant(){
     },
     body: JSON.stringify({ name: name }),
   });
-  state = await response.json();  // the state object is updated with the response from the server
+  state = await response.json(); // Update state with the assistant details
   writeToMessages(`Assistant ${state.assistant_name} is ready to chat`);
-  console.log(`back from fetch with state: ${JSON.stringify(state)}`)
+  console.log(`back from fetch with state: ${JSON.stringify(state)}`);
 }
 
-async function getThread(){
+async function getThread() {
+  const response = await fetch('/api/threads', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-// Enter Code Here
-
+  const data = await response.json();
+  state.threadId = data.threadId;
+  console.log(`New thread created with ID: ${state.threadId}`);
+  writeToMessages('A new thread has been created. Start chatting!');
 }
-async function getResponse(){
 
-// Enter Code Here
+async function getResponse() {
+  const message = document.getElementById('messageInput').value;
 
+  // Send the user's message to the server
+  const response = await fetch('/api/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ message: message }),
+  });
+
+  const data = await response.json();
+  console.log(`Messages: ${JSON.stringify(data.messages)}`);
+
+  // Update the UI with user and assistant messages
+  writeToMessages(`You: ${message}`);
+  data.messages.forEach((msg) => {
+    if (msg.role === 'assistant') {
+      writeToMessages(`Assistant: ${msg.content}`);
+    }
+  });
 }
-async function writeToMessages(message){
-  let messageDiv = document.getElementById("message-container");
-  messageDiv.innerHTML = message;
-  document.getElementById('messages').appendChild(messageDiv);
+
+async function writeToMessages(message) {
+  const messageContainer = document.getElementById("message-container");
+  const newMessage = document.createElement("div");
+  newMessage.textContent = message;
+
+  if (message.startsWith("You:")) {
+    newMessage.classList.add("message", "user");
+  } else {
+    newMessage.classList.add("message", "assistant");
+  }
+
+  messageContainer.appendChild(newMessage);
+  messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
 }
