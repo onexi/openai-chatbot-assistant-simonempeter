@@ -1,0 +1,64 @@
+{
+  "banking_products": [
+    {
+      "name": "Savings Account",
+      "description": "A basic savings account offering easy access to funds with a modest interest rate.",
+      "interest_rate": 0.5,
+      "requirements": "Minimum deposit of $100, no monthly fees, must be 18 years or older."
+    },
+    {
+      "name": "Fixed Deposit",
+      "description": "A time-bound deposit account offering a higher interest rate with a fixed maturity period.",
+      "interest_rate": 2.75,
+      "requirements": "Minimum deposit of $1,000, fixed tenure of 1 to 5 years, penalties for early withdrawal."
+    },
+    {
+      "name": "Home Loan",
+      "description": "A loan product designed for purchasing or refinancing a home, offering competitive interest rates and flexible terms.",
+      "interest_rate": 3.5,
+      "requirements": "Good credit score (minimum 650), proof of income, 20% down payment."
+    },
+    {
+      "name": "Personal Loan",
+      "description": "A loan offering flexible terms and fast approval, ideal for covering unexpected expenses or consolidating debt.",
+      "interest_rate": 5.5,
+      "requirements": "Minimum credit score of 600, proof of steady income, no collateral required."
+    },
+    {
+      "name": "Credit Card",
+      "description": "A revolving credit line offering rewards points, cashback, and competitive interest rates.",
+      "interest_rate": 17.99,
+      "requirements": "Minimum credit score of 650, income verification, must be 21 years or older."
+    },
+    {
+      "name": "Auto Loan",
+      "description": "A loan designed for purchasing new or used vehicles, offering fixed interest rates and flexible repayment periods.",
+      "interest_rate": 4.25,
+      "requirements": "Minimum credit score of 600, proof of employment, down payment of at least 10%."
+    },
+    {
+      "name": "Money Market Account",
+      "description": "A savings account that typically offers higher interest rates than standard savings accounts and allows limited check-writing capabilities.",
+      "interest_rate": 1.5,
+      "requirements": "Minimum deposit of $5,000, limited to 6 withdrawals per month, must be 18 years or older."
+    },
+    {
+      "name": "Business Loan",
+      "description": "A loan for small or medium-sized enterprises to fund operational expenses, equipment, or expansion.",
+      "interest_rate": 6.25,
+      "requirements": "Business must be operational for at least 2 years, minimum annual revenue of $100,000, good credit history."
+    },
+    {
+      "name": "Student Loan",
+      "description": "A loan designed to cover educational expenses, offering flexible repayment options and lower interest rates while in school.",
+      "interest_rate": 4.0,
+      "requirements": "Proof of enrollment in an accredited institution, no credit score required, must be at least 18 years old."
+    },
+    {
+      "name": "Retirement Account (IRA)",
+      "description": "A tax-advantaged savings account designed to help individuals save for retirement with potential tax benefits.",
+      "interest_rate": 1.25,
+      "requirements": "No income limits, contributions up to $6,000 per year, must be under 70½ years old."
+    }
+  ]
+}

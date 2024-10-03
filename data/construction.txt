@@ -1,0 +1,74 @@
+{
+  "construction_materials": [
+    {
+      "name": "Concrete Mix",
+      "price": 95.0,
+      "quantity_in_stock": 120,
+      "category": "Foundation",
+      "unit": "cubic meter"
+    },
+    {
+      "name": "Steel Rebar",
+      "price": 150.0,
+      "quantity_in_stock": 500,
+      "category": "Reinforcement",
+      "unit": "ton"
+    },
+    {
+      "name": "Bricks",
+      "price": 0.5,
+      "quantity_in_stock": 10000,
+      "category": "Masonry",
+      "unit": "brick"
+    },
+    {
+      "name": "Cement (50kg bag)",
+      "price": 10.0,
+      "quantity_in_stock": 300,
+      "category": "Binding Material",
+      "unit": "bag"
+    },
+    {
+      "name": "Sand",
+      "price": 50.0,
+      "quantity_in_stock": 200,
+      "category": "Aggregates",
+      "unit": "cubic meter"
+    },
+    {
+      "name": "Gravel",
+      "price": 60.0,
+      "quantity_in_stock": 150,
+      "category": "Aggregates",
+      "unit": "cubic meter"
+    },
+    {
+      "name": "Plywood",
+      "price": 25.0,
+      "quantity_in_stock": 250,
+      "category": "Wood",
+      "unit": "sheet"
+    },
+    {
+      "name": "Glass Panels",
+      "price": 100.0,
+      "quantity_in_stock": 100,
+      "category": "Glazing",
+      "unit": "panel"
+    },
+    {
+      "name": "Roofing Sheets",
+      "price": 40.0,
+      "quantity_in_stock": 350,
+      "category": "Roofing",
+      "unit": "sheet"
+    },
+    {
+      "name": "PVC Pipes (6 inch)",
+      "price": 15.0,
+      "quantity_in_stock": 600,
+      "category": "Plumbing",
+      "unit": "pipe"
+    }
+  ]
+}
