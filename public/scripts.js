@@ -16,9 +16,16 @@ async function getAssistant() {
     },
     body: JSON.stringify({ name: name }),
   });
-  state = await response.json(); // Update state with the assistant details
-  writeToMessages(`Assistant ${state.assistant_name} is ready to chat`);
-  console.log(`back from fetch with state: ${JSON.stringify(state)}`);
+  
+  state = await response.json();  // Update state with the assistant details
+  
+  if (state.assistant_name) {
+    writeToMessages(`Assistant ${state.assistant_name} is ready to chat`);
+    await getThread()
+    console.log(`back from fetch with state: ${JSON.stringify(state)}`);
+  } else {
+    writeToMessages('Error fetching assistant.');
+  }
 }
 
 async function getThread() {
@@ -30,15 +37,25 @@ async function getThread() {
   });
 
   const data = await response.json();
-  state.threadId = data.threadId;
-  console.log(`New thread created with ID: ${state.threadId}`);
-  writeToMessages('A new thread has been created. Start chatting!');
+
+  if (data.threadId) {
+    state.threadId = data.threadId;
+    console.log(`New thread created with ID: ${state.threadId}`);
+    writeToMessages('A new thread has been created. Start chatting!');
+  } else {
+    writeToMessages('Error creating thread.');
+  }
 }
 
 async function getResponse() {
   const message = document.getElementById('messageInput').value;
+  
+  // Ensure that a thread has been created before sending a message
+  if (!state.threadId) {
+    writeToMessages('Error: No thread created. Please try again.');
+    return;
+  }
 
-  // Send the user's message to the server
   const response = await fetch('/api/run', {
     method: 'POST',
     headers: {
@@ -48,18 +65,31 @@ async function getResponse() {
   });
 
   const data = await response.json();
-  console.log(`Messages: ${JSON.stringify(data.messages)}`);
 
-  // Update the UI with user and assistant messages
-  writeToMessages(`You: ${message}`);
-  data.messages.forEach((msg) => {
-    if (msg.role === 'assistant') {
-      writeToMessages(`Assistant: ${msg.content}`);
+  if (response.ok) {
+    if (data.messages) {
+      console.log(`Messages: ${JSON.stringify(data.messages)}`);
+
+      // Display user message
+      writeToMessages(`You: ${message}`);
+
+      // Display assistant messages
+      data.messages.forEach((msg) => {
+        if (msg.role === 'assistant') {
+          writeToMessages(`Assistant: ${msg.content}`);
+        }
+      });
+    } else {
+      console.error('No messages returned from the server.');
+      writeToMessages('No messages returned from the server.');
     }
-  });
+  } else {
+    console.error('Error:', data.error);
+    writeToMessages('Error: Unable to send message.');
+  }
 }
 
-async function writeToMessages(message) {
+function writeToMessages(message) {
   const messageContainer = document.getElementById("message-container");
   const newMessage = document.createElement("div");
   newMessage.textContent = message;
@@ -71,5 +101,5 @@ async function writeToMessages(message) {
   }
 
   messageContainer.appendChild(newMessage);
-  messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
+  messageContainer.scrollTop = messageContainer.scrollHeight;  // Auto-scroll to the bottom
 }

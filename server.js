@@ -27,53 +27,67 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Get list of Assistants and retrieve the one by its assistant_id
+// Route to get the assistant by its assistant_id
 app.post('/api/assistants', async (req, res) => {
   let assistant_id = req.body.name;
-  console.log('Fetching assistant with ID:', assistant_id);
 
   try {
-    const response = await openai.beta.assistants.list({
-      order: "desc",
-      limit: 20,
-    });
-    let myAssistant = await openai.beta.assistants.retrieve(assistant_id);
+    console.log('Fetching assistant with ID:', assistant_id);  // Log the assistant_id
 
+    // Fetch the assistant by its ID
+    let myAssistant = await openai.beta.assistants.retrieve(assistant_id);
+    console.log('Retrieved Assistant:', myAssistant);  // Log the assistant object
+
+    // Update state with the assistant details
     state.assistant_id = myAssistant.id;
     state.assistant_name = myAssistant.name;
 
     res.status(200).json(state);
   } catch (error) {
-    console.error('Error fetching assistant:', error);
+    console.error('Error fetching assistant:', error);  // Log the error
     res.status(500).json({ error: 'Failed to fetch assistant' });
   }
 });
 
-// Create a new thread
+
+// Route to create a new Thread
 app.post('/api/threads', async (req, res) => {
   try {
+    // Create a new thread
     let response = await openai.beta.threads.create();
-    state.threadId = response.id;
 
-    // Reset messages for the new thread
-    state.messages = [];
+    // Ensure the response contains a valid thread ID
+    if (response && response.id) {
+      state.threadId = response.id;
+      console.log(`Thread created with ID: ${state.threadId}`);
 
-    res.json({ threadId: state.threadId });
+      // Reset messages for the new thread
+      state.messages = [];
+
+      res.json({ threadId: state.threadId });
+    } else {
+      throw new Error('Thread creation failed. No ID returned.');
+    }
   } catch (error) {
     console.error('Error creating thread:', error);
     res.status(500).json({ error: 'Failed to create thread' });
   }
 });
 
-// Run the Assistant, Poll for Completion, and Get Responses
+// Route to send a message and run the Assistant
 app.post('/api/run', async (req, res) => {
   const { message } = req.body;
+
+  // Check if we have a valid thread ID
+  if (!state.threadId) {
+    return res.status(400).json({ error: 'No thread ID found. Please create a thread first.' });
+  }
 
   // Push the user message to the state
   state.messages.push({ role: 'user', content: message });
 
   try {
-    // Send the user's message
+    // Send the user's message to the thread
     await openai.beta.threads.messages.create(state.threadId, {
       role: "user",
       content: message,
@@ -89,6 +103,10 @@ app.post('/api/run', async (req, res) => {
     // Retrieve all the messages in the thread
     let messages = await openai.beta.threads.messages.list(state.threadId);
 
+    if (!messages.data || messages.data.length === 0) {
+      throw new Error('No messages returned from the assistant.');
+    }
+
     // Extract and return all relevant messages
     let all_messages = get_all_messages(messages.data);
     console.log(`Run Finished: ${JSON.stringify(all_messages)}`);
@@ -100,7 +118,7 @@ app.post('/api/run', async (req, res) => {
   }
 });
 
-// Helper function to retrieve all messages from the thread
+// Helper function to retrieve all messages
 function get_all_messages(messages) {
   let result = [];
 
