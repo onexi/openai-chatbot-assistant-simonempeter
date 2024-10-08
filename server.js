@@ -124,15 +124,32 @@ function get_all_messages(messages) {
 
   messages.forEach((msg) => {
     if (msg.role === 'user' || msg.role === 'assistant') {
+      let content = '';
+
+      // Check if the content is an array of objects
+      if (Array.isArray(msg.content)) {
+        msg.content.forEach(contentItem => {
+          // Extract only the text value from the content where type is 'text'
+          if (contentItem.type === 'text' && contentItem.text && contentItem.text.value) {
+            content += contentItem.text.value;  // Append the value
+          }
+        });
+      } else {
+        // If the content is not an array (though, it should be in this case)
+        content = msg.content;
+      }
+
+      // Push the role and content to the result array
       result.push({
         role: msg.role,
-        content: msg.content,
+        content: content,
       });
     }
   });
 
   return result;
 }
+
 
 // Start the server
 app.listen(PORT, () => {

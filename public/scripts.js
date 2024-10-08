@@ -94,6 +94,7 @@ async function getResponse() {
 }
 
 
+
 function writeToMessages(message) {
   const messageContainer = document.getElementById("message-container");
   const newMessage = document.createElement("div");
