@@ -48,7 +48,8 @@ async function getThread() {
 }
 
 async function getResponse() {
-  const message = document.getElementById('messageInput').value;
+  const messageInput = document.getElementById('messageInput');
+  const message = messageInput.value;
   
   // Ensure that a thread has been created before sending a message
   if (!state.threadId) {
@@ -73,6 +74,9 @@ async function getResponse() {
       // Display user message
       writeToMessages(`You: ${message}`);
 
+      // Clear the input field after the message is sent
+      messageInput.value = '';
+
       // Display assistant messages
       data.messages.forEach((msg) => {
         if (msg.role === 'assistant') {
@@ -88,6 +92,7 @@ async function getResponse() {
     writeToMessages('Error: Unable to send message.');
   }
 }
+
 
 function writeToMessages(message) {
   const messageContainer = document.getElementById("message-container");
