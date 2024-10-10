@@ -29,25 +29,39 @@ const openai = new OpenAI({
 
 // Route to get the assistant by its assistant_id
 app.post('/api/assistants', async (req, res) => {
-  let assistant_id = req.body.name;
+  const assistantName = req.body.name;
 
   try {
-    console.log('Fetching assistant with ID:', assistant_id);  // Log the assistant_id
+    console.log('Fetching assistant with name:', assistantName);
 
-    // Fetch the assistant by its ID
-    let myAssistant = await openai.beta.assistants.retrieve(assistant_id);
-    console.log('Retrieved Assistant:', myAssistant);  // Log the assistant object
+    // Get the list of assistants
+    const assistants = await openai.beta.assistants.list({
+      limit: 50, // Adjust as necessary to match the number of assistants you have
+    });
+
+    // Find the assistant by name
+    const assistant = assistants.data.find(a => a.name.toLowerCase() === assistantName.toLowerCase());
+
+    if (!assistant) {
+      return res.status(404).json({ error: 'Assistant not found' });
+    }
+
+    console.log('Retrieved Assistant:', assistant);
 
     // Update state with the assistant details
-    state.assistant_id = myAssistant.id;
-    state.assistant_name = myAssistant.name;
+    state.assistant_id = assistant.id;
+    state.assistant_name = assistant.name;
 
-    res.status(200).json(state);
+    res.status(200).json({
+      assistant_id: assistant.id,
+      assistant_name: assistant.name,
+    });
   } catch (error) {
-    console.error('Error fetching assistant:', error);  // Log the error
+    console.error('Error fetching assistant:', error);
     res.status(500).json({ error: 'Failed to fetch assistant' });
   }
 });
+
 
 
 // Route to create a new Thread
@@ -64,6 +78,7 @@ app.post('/api/threads', async (req, res) => {
       // Reset messages for the new thread
       state.messages = [];
 
+      // Respond with the thread ID
       res.json({ threadId: state.threadId });
     } else {
       throw new Error('Thread creation failed. No ID returned.');
@@ -74,6 +89,8 @@ app.post('/api/threads', async (req, res) => {
   }
 });
 
+
+// Route to send a message and run the Assistant
 // Route to send a message and run the Assistant
 app.post('/api/run', async (req, res) => {
   const { message } = req.body;
@@ -111,12 +128,15 @@ app.post('/api/run', async (req, res) => {
     let all_messages = get_all_messages(messages.data);
     console.log(`Run Finished: ${JSON.stringify(all_messages)}`);
 
-    res.json({ messages: all_messages });
+    // Include run_id in the response
+    res.json({ messages: all_messages, run_id: state.run_id });
   } catch (error) {
     console.error('Error running assistant:', error);
     res.status(500).json({ error: 'Failed to run assistant' });
   }
 });
+
+
 
 // Helper function to retrieve all messages
 function get_all_messages(messages) {
@@ -124,15 +144,32 @@ function get_all_messages(messages) {
 
   messages.forEach((msg) => {
     if (msg.role === 'user' || msg.role === 'assistant') {
+      let content = '';
+
+      // Check if the content is an array of objects
+      if (Array.isArray(msg.content)) {
+        msg.content.forEach(contentItem => {
+          // Extract only the text value from the content where type is 'text'
+          if (contentItem.type === 'text' && contentItem.text && contentItem.text.value) {
+            content += contentItem.text.value;  // Append the value
+          }
+        });
+      } else {
+        // If the content is not an array (though, it should be in this case)
+        content = msg.content;
+      }
+
+      // Push the role and content to the result array
       result.push({
         role: msg.role,
-        content: msg.content,
+        content: content,
       });
     }
   });
 
   return result;
 }
+
 
 // Start the server
 app.listen(PORT, () => {
