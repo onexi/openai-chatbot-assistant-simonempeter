@@ -98,39 +98,29 @@ async function getResponse() {
 
     const data = await response.json();
 
-    if (response.ok) {
-      if (data.messages) {
-        console.log(`Messages: ${JSON.stringify(data.messages)}`);
+    console.log('Server Response:', data); // Debugging line to check the response structure
 
-        // Display assistant's latest message with Markdown formatting
-        let assistantResponseFound = false;
-        data.messages.forEach((msg) => {
-          if (msg.role === 'assistant') {
-            // Remove citations from the assistant's response
-            const filteredContent = msg.content.replace(/【\d+:\d+†[\w.]+】/g, '');
-            writeToMessages(marked.parse(filteredContent), 'assistant', true);
-            assistantResponseFound = true;
-          }
-        });
+    if (
+      response.ok &&
+      Array.isArray(data.message) &&
+      data.message.length > 0 &&
+      data.message[0].text &&
+      Array.isArray(data.message[0].text.value) &&
+      data.message[0].text.value.length > 0 &&
+      typeof data.message[0].text.value[0].text.value === 'string'
+    ) {
+      // Extract the text content from the nested structure
+      let content = data.message[0].text.value[0].text.value;
+      content = content.replace(/【\d+:\d+†[\w.]+】/g, ''); // Remove citations if any
+      writeToMessages(marked.parse(content), 'assistant', true);
 
-        // Update the Agent Context Window with the exact console message only if an assistant response was found
-        if (assistantResponseFound) {
-          const agentContext = document.getElementById("agent_context");
-          agentContext.value = JSON.stringify(data.messages, null, 2); // Format JSON for readability
-          agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
-        }
-
-        // Update the Current Run ID
-        if (data.run_id) {
-          runIdField.value = data.run_id; // Display the run_id
-        }
-      } else {
-        console.error('No messages returned from the server.');
-        writeToMessages('No messages returned from the server.', 'assistant');
+      // Update the Current Run ID
+      if (data.run_id) {
+        runIdField.value = data.run_id; // Display the run_id
       }
     } else {
-      console.error('Error:', data.error);
-      writeToMessages('Error: Unable to send message.', 'assistant');
+      console.error('No valid message returned from the server.');
+      writeToMessages('No valid message returned from the server.', 'assistant');
     }
   } catch (error) {
     console.error('Error fetching response:', error);

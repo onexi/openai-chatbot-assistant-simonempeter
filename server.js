@@ -20,7 +20,7 @@ let state = {
   assistant_name: null,
   threadId: null,
   run_id: null,
-  messages: [],
+  messages: [], // Store all conversation messages here
 };
 
 const openai = new OpenAI({
@@ -62,8 +62,6 @@ app.post('/api/assistants', async (req, res) => {
   }
 });
 
-
-
 // Route to create a new Thread
 app.post('/api/threads', async (req, res) => {
   try {
@@ -89,8 +87,6 @@ app.post('/api/threads', async (req, res) => {
   }
 });
 
-
-// Route to send a message and run the Assistant
 // Route to send a message and run the Assistant
 app.post('/api/run', async (req, res) => {
   const { message } = req.body;
@@ -117,59 +113,37 @@ app.post('/api/run', async (req, res) => {
 
     state.run_id = run.id;
 
-    // Retrieve all the messages in the thread
-    let messages = await openai.beta.threads.messages.list(state.threadId);
+    // Retrieve the most recent messages in the thread, ordered by time
+    let messages = await openai.beta.threads.messages.list(state.threadId, {
+      order: 'asc', // Ensures messages are returned in chronological order
+    });
 
     if (!messages.data || messages.data.length === 0) {
       throw new Error('No messages returned from the assistant.');
     }
 
-    // Extract and return all relevant messages
-    let all_messages = get_all_messages(messages.data);
-    console.log(`Run Finished: ${JSON.stringify(all_messages)}`);
+    // Find the most recent assistant message
+    const latestAssistantMessage = messages.data
+      .filter(msg => msg.role === 'assistant')
+      .slice(-1)[0]; // Get the last assistant message
 
-    // Include run_id in the response
-    res.json({ messages: all_messages, run_id: state.run_id });
+    if (!latestAssistantMessage) {
+      throw new Error('No assistant response found.');
+    }
+
+    // Push the assistant's response to the state messages
+    state.messages.push({ role: 'assistant', content: latestAssistantMessage.content });
+
+    // Return only the most recent assistant message
+    res.json({
+      message: [{ text: { value: latestAssistantMessage.content }, type: 'text' }],
+      run_id: state.run_id,
+    });
   } catch (error) {
     console.error('Error running assistant:', error);
     res.status(500).json({ error: 'Failed to run assistant' });
   }
 });
-
-
-
-// Helper function to retrieve all messages
-function get_all_messages(messages) {
-  let result = [];
-
-  messages.forEach((msg) => {
-    if (msg.role === 'user' || msg.role === 'assistant') {
-      let content = '';
-
-      // Check if the content is an array of objects
-      if (Array.isArray(msg.content)) {
-        msg.content.forEach(contentItem => {
-          // Extract only the text value from the content where type is 'text'
-          if (contentItem.type === 'text' && contentItem.text && contentItem.text.value) {
-            content += contentItem.text.value;  // Append the value
-          }
-        });
-      } else {
-        // If the content is not an array (though, it should be in this case)
-        content = msg.content;
-      }
-
-      // Push the role and content to the result array
-      result.push({
-        role: msg.role,
-        content: content,
-      });
-    }
-  });
-
-  return result;
-}
-
 
 // Start the server
 app.listen(PORT, () => {
