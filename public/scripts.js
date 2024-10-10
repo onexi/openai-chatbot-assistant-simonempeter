@@ -77,7 +77,7 @@ async function getResponse() {
       // Clear the input field after the message is sent
       messageInput.value = '';
 
-      // Display assistant messages
+      // Display assistant's latest message
       data.messages.forEach((msg) => {
         if (msg.role === 'assistant') {
           writeToMessages(`Assistant: ${msg.content}`);
@@ -92,6 +92,7 @@ async function getResponse() {
     writeToMessages('Error: Unable to send message.');
   }
 }
+
 
 
 
