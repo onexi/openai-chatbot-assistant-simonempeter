@@ -126,25 +126,16 @@ async function getResponse() {
     const data = await response.json();
 
     if (response.ok) {
-      if (data.messages) {
-        console.log(`Messages: ${JSON.stringify(data.messages)}`);
+      if (data.message) {
+        console.log(`Assistant Response: ${data.message}`);
 
-        // Display assistant's latest message with Markdown formatting
-        let assistantResponseFound = false;
-        data.messages.forEach((msg) => {
-          if (msg.role === 'assistant') {
-            const filteredContent = msg.content.replace(/【\d+:\d+†source】/g, '');
-            writeToMessages(marked.parse(filteredContent), 'assistant', true);
-            assistantResponseFound = true;
-          }
-        });
+        // Display the assistant's message
+        writeToMessages(marked.parse(data.message), 'assistant');
 
-        // Update the Agent Context Window with the exact console message only if an assistant response was found
-        if (assistantResponseFound) {
-          const agentContext = document.getElementById("agent_context");
-          agentContext.value = JSON.stringify(data.messages, null, 2); // Format JSON for readability
-          agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
-        }
+        // Update the Agent Context Window with the exact console message
+        const agentContext = document.getElementById("agent_context");
+        agentContext.value = JSON.stringify([{ role: 'assistant', content: data.message }], null, 2);
+        agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
 
         // Update the Current Run ID
         if (data.run_id) {
@@ -169,27 +160,26 @@ async function getResponse() {
 }
 
 
-function writeToMessages(message, role, isHTML = false) {
+function writeToMessages(message, role = 'system') {
   const messageContainer = document.getElementById("message-container");
-  const messageWrapper = document.createElement("div");
-  messageWrapper.classList.add("message-wrapper");
-
   const newMessage = document.createElement("div");
-  newMessage.classList.add("message");
 
-  if (isHTML) {
-    newMessage.innerHTML = message; // Render as HTML for Markdown formatting
+  // Apply different classes based on the role
+  if (role === 'system') {
+    newMessage.classList.add('system-message');
+    newMessage.textContent = message; // Use plain text for system messages
   } else {
-    newMessage.textContent = message;
+    newMessage.classList.add('message-wrapper');
+
+    const messageBox = document.createElement("div");
+    messageBox.classList.add('message', role);
+    messageBox.innerHTML = marked.parse(message);
+
+    newMessage.appendChild(messageBox);
   }
 
-  if (role === "user") {
-    newMessage.classList.add("user");
-  } else {
-    newMessage.classList.add("assistant");
-  }
-
-  messageWrapper.appendChild(newMessage);
-  messageContainer.appendChild(messageWrapper);
-  messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
+  messageContainer.appendChild(newMessage);
+  messageContainer.scrollTop = messageContainer.scrollHeight;
 }
+
+
