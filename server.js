@@ -91,6 +91,7 @@ app.post('/api/threads', async (req, res) => {
 
 
 // Route to send a message and run the Assistant
+// Route to send a message and run the Assistant
 app.post('/api/run', async (req, res) => {
   const { message } = req.body;
 
@@ -123,48 +124,18 @@ app.post('/api/run', async (req, res) => {
       throw new Error('No messages returned from the assistant.');
     }
 
-    // Find the index of the last user message in the message list
-    const lastUserMessageIndex = messages.data
-      .map(msg => msg.role === 'user' && msg.content === message)
-      .lastIndexOf(true);
+    // Extract and return all relevant messages
+    let all_messages = get_all_messages(messages.data);
+    console.log(`Run Finished: ${JSON.stringify(all_messages)}`);
 
-    // Get the assistant message that comes right after the last user message
-    const latestAssistantMessage = messages.data
-      .slice(lastUserMessageIndex + 1)
-      .find(msg => msg.role === 'assistant');
-
-    if (!latestAssistantMessage) {
-      throw new Error('No new assistant message found.');
-    }
-
-    // Extract the text value from the assistant's message content, filtering out annotations
-    let content = '';
-    if (Array.isArray(latestAssistantMessage.content)) {
-      latestAssistantMessage.content.forEach(contentItem => {
-        if (contentItem.type === 'text' && contentItem.text && contentItem.text.value) {
-          // Remove annotations like   using regex
-          content += contentItem.text.value.replace(/【.*?】/g, '').trim(); // Regex to remove anything in square brackets
-        }
-      });
-    } else {
-      content = latestAssistantMessage.content; // Fallback in case content is not an array
-    }
-
-    console.log(`Latest Assistant Message: ${content}`);
-
-    // Keep all messages in state but only return the latest assistant message
-    state.messages.push({
-      role: 'assistant',
-      content: content,
-    });
-
-    // Return only the most recent assistant message
-    res.json({ messages: [{ role: 'assistant', content: content }] });
+    // Include run_id in the response
+    res.json({ messages: all_messages, run_id: state.run_id });
   } catch (error) {
     console.error('Error running assistant:', error);
     res.status(500).json({ error: 'Failed to run assistant' });
   }
 });
+
 
 
 // Helper function to retrieve all messages

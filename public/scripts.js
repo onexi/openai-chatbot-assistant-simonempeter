@@ -75,77 +75,111 @@ async function getThread() {
 
 async function getResponse() {
   const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+  const runIdField = document.getElementById('run_id');
   const message = messageInput.value;
+
+  if (!message) {
+    return;
+  }
+
+  // Display user message immediately
+  writeToMessages(message, 'user');
+  messageInput.value = ''; // Clear the input field
+
+  // Show the loading spinner and hide the Send button
+  sendBtn.style.display = 'none';
+  loadingSpinner.style.display = 'inline-block';
 
   // Ensure that a thread has been created before sending a message
   if (!state.threadId) {
     await getThread();
 
     if (!state.threadId) {
-      writeToMessages('Error: No thread created. Please try again.');
+      writeToMessages('Error: No thread created. Please try again.', 'assistant');
+      sendBtn.style.display = 'inline-block';
+      loadingSpinner.style.display = 'none';
       return;
     }
   }
 
-  const response = await fetch('/api/run', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message: message }),
-  });
+  try {
+    const response = await fetch('/api/run', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: message }),
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (response.ok) {
-    if (data.messages) {
-      console.log(`Messages: ${JSON.stringify(data.messages)}`);
+    if (response.ok) {
+      if (data.messages) {
+        console.log(`Messages: ${JSON.stringify(data.messages)}`);
 
-      // Display user message
-      writeToMessages(`You: ${message}`);
+        // Display assistant's latest message with Markdown formatting
+        let assistantResponseFound = false;
+        data.messages.forEach((msg) => {
+          if (msg.role === 'assistant') {
+            // Remove citations like "【number:number†source】" from the message content
+            const filteredContent = msg.content.replace(/【\d+:\d+†source】/g, '');
+            writeToMessages(marked.parse(filteredContent), 'assistant', true);
+            assistantResponseFound = true;
+          }
+        });
 
-      // Clear the input field after the message is sent
-      messageInput.value = '';
-
-      // Display assistant's latest message
-      data.messages.forEach((msg) => {
-        if (msg.role === 'assistant') {
-          writeToMessages(`Assistant: ${msg.content}`);
+        // Update the Agent Context Window with the exact console message only if an assistant response was found
+        if (assistantResponseFound) {
+          const agentContext = document.getElementById("agent_context");
+          agentContext.value = JSON.stringify(data.messages, null, 2); // Format JSON for readability
+          agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
         }
-      });
 
-      // Update the Agent Context Window with the full JSON response
-      const agentContext = document.getElementById("agent_context");
-      agentContext.value = JSON.stringify(data.messages, null, 2); // Format JSON for readability
-      agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
+        // Update the Current Run ID
+        if (data.run_id) {
+          runIdField.value = data.run_id; // Display the run_id
+        }
+      } else {
+        console.error('No messages returned from the server.');
+        writeToMessages('No messages returned from the server.', 'assistant');
+      }
     } else {
-      console.error('No messages returned from the server.');
-      writeToMessages('No messages returned from the server.');
+      console.error('Error:', data.error);
+      writeToMessages('Error: Unable to send message.', 'assistant');
     }
-  } else {
-    console.error('Error:', data.error);
-    writeToMessages('Error: Unable to send message.');
+  } catch (error) {
+    console.error('Error fetching response:', error);
+    writeToMessages('Error: Unable to communicate with the assistant.', 'assistant');
+  } finally {
+    // Show the Send button and hide the loading spinner
+    sendBtn.style.display = 'inline-block';
+    loadingSpinner.style.display = 'none';
   }
 }
 
-
-
-function writeToMessages(message) {
+function writeToMessages(message, role, isHTML = false) {
   const messageContainer = document.getElementById("message-container");
-  const newMessage = document.createElement("div");
-  newMessage.textContent = message;
+  const messageWrapper = document.createElement("div");
+  messageWrapper.classList.add("message-wrapper");
 
-  if (message.startsWith("You:")) {
-    newMessage.classList.add("message", "user");
+  const newMessage = document.createElement("div");
+  newMessage.classList.add("message");
+
+  if (isHTML) {
+    newMessage.innerHTML = message; // Render as HTML for Markdown formatting
   } else {
-    newMessage.classList.add("message", "assistant");
+    newMessage.textContent = message;
   }
 
-  messageContainer.appendChild(newMessage);
-  messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
+  if (role === "user") {
+    newMessage.classList.add("user");
+  } else {
+    newMessage.classList.add("assistant");
+  }
 
-  // Update the Agent Context Window with the full message content
-  const agentContext = document.getElementById("agent_context");
-  agentContext.value += message + "\n"; // Append the new message
-  agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
+  messageWrapper.appendChild(newMessage);
+  messageContainer.appendChild(messageWrapper);
+  messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
 }
