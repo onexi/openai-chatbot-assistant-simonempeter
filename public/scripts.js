@@ -20,10 +20,10 @@ async function getAssistant() {
   state = await response.json(); // Update state with the assistant details
 
   if (state.assistant_name) {
-    writeToMessages(`Assistant ${state.assistant_name} is ready to chat`, 'system');
+    writeToMessages(`Assistant ${state.assistant_name} is ready to chat`, 'system', false, true);
     console.log(`Assistant details: ${JSON.stringify(state)}`);
   } else {
-    writeToMessages('Error fetching assistant.', 'system');
+    writeToMessages('Error fetching assistant.', 'system', false, true);
   }
 }
 
@@ -40,9 +40,9 @@ async function getThread() {
   if (data.threadId) {
     state.threadId = data.threadId;
     console.log(`New thread created with ID: ${state.threadId}`);
-    writeToMessages('A new thread has been created. Start chatting!', 'system');
+    writeToMessages('A new thread has been created. Start chatting!', 'system', false, true);
   } else {
-    writeToMessages('Error creating thread.', 'system');
+    writeToMessages('Error creating thread.', 'system', false, true);
   }
 }
 
@@ -52,7 +52,7 @@ async function getResponse() {
 
   // Ensure that a thread has been created before sending a message
   if (!state.threadId) {
-    writeToMessages('Error: No thread created. Please create a thread first.', 'system');
+    writeToMessages('Error: No thread created. Please create a thread first.', 'system', false, true);
     return;
   }
 
@@ -78,35 +78,55 @@ async function getResponse() {
       // Display assistant messages on the left
       data.messages.forEach((msg) => {
         if (msg.role === 'assistant') {
-          writeToMessages(msg.content, 'assistant');
+          // Parse the assistant's response as Markdown and format accordingly
+          const formattedContent = marked.parse(msg.content.replace(/【\d+:\d+†[\w.]+】/g, '')); // Removing citations
+          writeToMessages(formattedContent, 'assistant', true);
         }
       });
     } else {
       console.error('No messages returned from the server.');
-      writeToMessages('No messages returned from the server.', 'system');
+      writeToMessages('No messages returned from the server.', 'system', false, true);
     }
   } else {
     console.error('Error:', data.error);
-    writeToMessages('Error: Unable to send message.', 'system');
+    writeToMessages('Error: Unable to send message.', 'system', false, true);
   }
 }
 
-function writeToMessages(message, role = 'system') {
+function writeToMessages(message, role, isHTML = false, isSystemMessage = false) {
   const messageContainer = document.getElementById("message-container");
-  const newMessage = document.createElement("div");
-  newMessage.textContent = message;
 
-  // Apply different styles based on the role
-  if (role === 'user') {
-    newMessage.classList.add("message", "user");
-  } else if (role === 'assistant') {
-    newMessage.classList.add("message", "assistant");
+  if (isSystemMessage) {
+    // Handle system messages
+    const systemMessage = document.createElement("div");
+    systemMessage.textContent = message;
+    systemMessage.style.color = '#cccccc'; // Match the color of placeholders
+    systemMessage.style.fontStyle = 'italic'; // Italicize the text
+    systemMessage.style.marginBottom = '10px';
+    messageContainer.appendChild(systemMessage);
   } else {
-    newMessage.classList.add("system-message");
-    newMessage.style.color = '#cccccc'; // Light grey for system messages
-    newMessage.style.fontStyle = 'italic'; // Italic style for system messages
+    // Handle user and assistant messages
+    const messageWrapper = document.createElement("div");
+    messageWrapper.classList.add("message-wrapper");
+
+    const newMessage = document.createElement("div");
+    newMessage.classList.add("message");
+
+    if (isHTML) {
+      newMessage.innerHTML = message; // Render as HTML for Markdown formatting
+    } else {
+      newMessage.textContent = message;
+    }
+
+    if (role === "user") {
+      newMessage.classList.add("user");
+    } else {
+      newMessage.classList.add("assistant");
+    }
+
+    messageWrapper.appendChild(newMessage);
+    messageContainer.appendChild(messageWrapper);
   }
 
-  messageContainer.appendChild(newMessage);
   messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
 }
