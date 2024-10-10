@@ -51,6 +51,32 @@
       .spinner-border {
         display: none;
       }
+
+      @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .rotating-dollar-container {
+    display: none;
+    background-color: #28a745; /* Same green as the "Send" button */
+    color: #ffffff; /* White dollar sign */
+    font-size: 24px;
+    width: 75px; /* Same width as the "Send" button */
+    height: 38px; /* Same height as the "Send" button */
+    border-radius: 0.25rem;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+  }
+
+  .rotating-dollar {
+    animation: rotate 1s linear infinite;
+  }
     </style>
     <!-- Marked.js for Markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -122,9 +148,21 @@
         <button id="sendBtn" class="btn btn-success" onclick="getResponse()">
           Send
         </button>
-        <div class="spinner-border text-success align-self-center ms-2" id="loadingSpinner" role="status">
-          <span class="visually-hidden">Loading...</span>
+        <div class="rotating-dollar-container" id="loadingDollar">
+          <span class="rotating-dollar">$</span>
         </div>
+      </div>
+      
+      <!-- Current Run ID Display -->
+      <div class="mb-3">
+        <label for="run_id" class="form-label">Current Run ID</label>
+        <input
+          id="run_id"
+          type="text"
+          class="form-control"
+          placeholder="Run ID will appear here"
+          readonly
+        />
       </div>
 
       <!-- Agent Context Window -->

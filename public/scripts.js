@@ -46,52 +46,102 @@ async function getThread() {
   }
 }
 
+// Initialize visibility settings when the page loads
+window.onload = function () {
+  const sendBtn = document.getElementById('sendBtn');
+  const loadingDollar = document.getElementById('loadingDollar');
+
+  // Make sure the "Send" button is visible and the rotating dollar is hidden
+  sendBtn.style.display = 'inline-block';
+  loadingDollar.style.display = 'none';
+};
+
 async function getResponse() {
   const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const loadingDollar = document.getElementById('loadingDollar');
+  const runIdField = document.getElementById('run_id');
   const message = messageInput.value;
 
-  // Ensure that a thread has been created before sending a message
-  if (!state.threadId) {
-    writeToMessages('Error: No thread created. Please create a thread first.', 'system', false, true);
+  if (!message) {
     return;
   }
 
-  // Display the user's message immediately on the right
+  // Display user message immediately
   writeToMessages(message, 'user');
   messageInput.value = ''; // Clear the input field
 
-  // Send the message to the server
-  const response = await fetch('/api/run', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message: message }),
-  });
+  // Show the rotating dollar sign container and hide the Send button
+  sendBtn.style.display = 'none';
+  loadingDollar.style.display = 'flex'; // Make the dollar sign container visible
 
-  const data = await response.json();
+  // Ensure that a thread has been created before sending a message
+  if (!state.threadId) {
+    await getThread();
 
-  if (response.ok) {
-    if (data.messages) {
-      console.log(`Messages: ${JSON.stringify(data.messages)}`);
-
-      // Display assistant messages on the left
-      data.messages.forEach((msg) => {
-        if (msg.role === 'assistant') {
-          // Parse the assistant's response as Markdown and format accordingly
-          const formattedContent = marked.parse(msg.content.replace(/【\d+:\d+†[\w.]+】/g, '')); // Removing citations
-          writeToMessages(formattedContent, 'assistant', true);
-        }
-      });
-    } else {
-      console.error('No messages returned from the server.');
-      writeToMessages('No messages returned from the server.', 'system', false, true);
+    if (!state.threadId) {
+      writeToMessages('Error: No thread created. Please try again.', 'assistant');
+      sendBtn.style.display = 'inline-block';
+      loadingDollar.style.display = 'none';
+      return;
     }
-  } else {
-    console.error('Error:', data.error);
-    writeToMessages('Error: Unable to send message.', 'system', false, true);
+  }
+
+  try {
+    const response = await fetch('/api/run', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: message }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data.messages) {
+        console.log(`Messages: ${JSON.stringify(data.messages)}`);
+
+        // Display assistant's latest message with Markdown formatting
+        let assistantResponseFound = false;
+        data.messages.forEach((msg) => {
+          if (msg.role === 'assistant') {
+            // Remove citations from the assistant's response
+            const filteredContent = msg.content.replace(/【\d+:\d+†[\w.]+】/g, '');
+            writeToMessages(marked.parse(filteredContent), 'assistant', true);
+            assistantResponseFound = true;
+          }
+        });
+
+        // Update the Agent Context Window with the exact console message only if an assistant response was found
+        if (assistantResponseFound) {
+          const agentContext = document.getElementById("agent_context");
+          agentContext.value = JSON.stringify(data.messages, null, 2); // Format JSON for readability
+          agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
+        }
+
+        // Update the Current Run ID
+        if (data.run_id) {
+          runIdField.value = data.run_id; // Display the run_id
+        }
+      } else {
+        console.error('No messages returned from the server.');
+        writeToMessages('No messages returned from the server.', 'assistant');
+      }
+    } else {
+      console.error('Error:', data.error);
+      writeToMessages('Error: Unable to send message.', 'assistant');
+    }
+  } catch (error) {
+    console.error('Error fetching response:', error);
+    writeToMessages('Error: Unable to communicate with the assistant.', 'assistant');
+  } finally {
+    // Show the Send button and hide the rotating dollar sign container
+    sendBtn.style.display = 'inline-block';
+    loadingDollar.style.display = 'none';
   }
 }
+
 
 function writeToMessages(message, role, isHTML = false, isSystemMessage = false) {
   const messageContainer = document.getElementById("message-container");
