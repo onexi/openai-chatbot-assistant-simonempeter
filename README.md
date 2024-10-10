@@ -2,9 +2,10 @@
 # PS03OpenAIAssistantChatBot
 ### create a .env file and put in your OPENAI_API_KEY
 
-# Banking Assistant Chatbot
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### Create a `.env` file and put in your `OPENAI_API_KEY`
+# Banking Assistant Chatbot
+## Simone Peter (smpeter) - MIT 1.125 Architecting and Engineering Software Systems
 
 This website serves as an interface for a chatbot powered by an OpenAI assistant. The chatbot is designed to interact with users by answering questions or providing information about banking-related topics. The web application allows users to interact with the assistant in a conversational manner, managing chat threads, sending messages, and displaying responses in a user-friendly interface.
 
