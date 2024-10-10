@@ -26,13 +26,16 @@
       .message.assistant {
         color: #ffc107;
       }
+      .align-button {
+        margin-top: 32px; /* Adjust this value as needed for perfect alignment */
+      }
     </style>
   </head>
   <body>
     <div class="container my-5">
       <h1 class="text-center">Assistant Chat</h1>
 
-      <!-- Row for Assistant Name, ID, and Get Assistant Button -->
+      <!-- Row for Assistant Name, Get Assistant Button, and Assistant ID -->
       <div class="row mb-3">
         <div class="col-md-4">
           <label for="assistant_name" class="form-label">Assistant Name</label>
@@ -45,6 +48,12 @@
           />
         </div>
         <div class="col-md-4">
+          <label class="form-label">&nbsp;</label>
+          <button id="get_assistant" class="btn btn-primary w-100" onclick="getAssistant()">
+            Get Assistant
+          </button>
+        </div>
+        <div class="col-md-4">
           <label for="assistant_id" class="form-label">Assistant ID</label>
           <input
             id="assistant_id"
@@ -54,19 +63,25 @@
             readonly
           />
         </div>
-        <div class="col-md-4">
-          <label class="form-label">&nbsp;</label>
-          <button id="get_assistant" class="btn btn-primary w-100" onclick="getAssistant()">
-            Get Assistant
-          </button>
-        </div>
       </div>
 
-      <!-- Create New Thread Button -->
-      <div class="mb-3">
-        <button id="newThreadBtn" class="btn btn-primary" onclick="getThread()">
-          Create New Thread
-        </button>
+      <!-- Row for Create New Thread Button and Thread ID -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <button id="newThreadBtn" class="btn btn-primary w-100 align-button" onclick="getThread()">
+            Create New Thread
+          </button>
+        </div>
+        <div class="col-md-6">
+          <label for="thread_id" class="form-label">Thread ID</label>
+          <input
+            id="thread_id"
+            type="text"
+            class="form-control"
+            placeholder="Thread ID will appear here"
+            readonly
+          />
+        </div>
       </div>
 
       <!-- Message Display -->
@@ -83,6 +98,18 @@
           class="form-control"
           placeholder="Type your message..."
         />
+      </div>
+
+      <!-- Agent Context Window -->
+      <div class="mb-3">
+        <label for="agent_context" class="form-label">Agent Context Window</label>
+        <textarea
+          id="agent_context"
+          class="form-control"
+          rows="10"
+          placeholder="Full message from console will appear here"
+          readonly
+        ></textarea>
       </div>
     </div>
 

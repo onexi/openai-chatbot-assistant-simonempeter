@@ -59,6 +59,9 @@ async function getThread() {
       state.threadId = data.threadId;
       console.log(`New thread created with ID: ${state.threadId}`);
       writeToMessages('A new thread has been created. Start chatting!');
+
+      // Update the Thread ID field with the newly created thread ID
+      document.getElementById('thread_id').value = state.threadId;
     } else {
       writeToMessages('Error creating thread.');
       console.error('Error creating thread:', data.error);
@@ -76,10 +79,8 @@ async function getResponse() {
 
   // Ensure that a thread has been created before sending a message
   if (!state.threadId) {
-    // Try to create a new thread
     await getThread();
 
-    // If still no thread, display an error message
     if (!state.threadId) {
       writeToMessages('Error: No thread created. Please try again.');
       return;
@@ -112,6 +113,11 @@ async function getResponse() {
           writeToMessages(`Assistant: ${msg.content}`);
         }
       });
+
+      // Update the Agent Context Window with the full JSON response
+      const agentContext = document.getElementById("agent_context");
+      agentContext.value = JSON.stringify(data.messages, null, 2); // Format JSON for readability
+      agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
     } else {
       console.error('No messages returned from the server.');
       writeToMessages('No messages returned from the server.');
@@ -121,6 +127,7 @@ async function getResponse() {
     writeToMessages('Error: Unable to send message.');
   }
 }
+
 
 
 function writeToMessages(message) {
@@ -135,5 +142,10 @@ function writeToMessages(message) {
   }
 
   messageContainer.appendChild(newMessage);
-  messageContainer.scrollTop = messageContainer.scrollHeight;  // Auto-scroll to the bottom
+  messageContainer.scrollTop = messageContainer.scrollHeight; // Auto-scroll to the bottom
+
+  // Update the Agent Context Window with the full message content
+  const agentContext = document.getElementById("agent_context");
+  agentContext.value += message + "\n"; // Append the new message
+  agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
 }
