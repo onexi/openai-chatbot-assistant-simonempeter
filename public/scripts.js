@@ -73,10 +73,20 @@ async function getThread() {
 }
 
 
+// Initialize visibility settings when the page loads
+window.onload = function () {
+  const sendBtn = document.getElementById('sendBtn');
+  const loadingDollar = document.getElementById('loadingDollar');
+
+  // Make sure the "Send" button is visible and the rotating dollar is hidden
+  sendBtn.style.display = 'inline-block';
+  loadingDollar.style.display = 'none';
+};
+
 async function getResponse() {
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
-  const loadingSpinner = document.getElementById('loadingSpinner');
+  const loadingDollar = document.getElementById('loadingDollar');
   const runIdField = document.getElementById('run_id');
   const message = messageInput.value;
 
@@ -88,9 +98,9 @@ async function getResponse() {
   writeToMessages(message, 'user');
   messageInput.value = ''; // Clear the input field
 
-  // Show the loading spinner and hide the Send button
+  // Show the rotating dollar sign container and hide the Send button
   sendBtn.style.display = 'none';
-  loadingSpinner.style.display = 'inline-block';
+  loadingDollar.style.display = 'flex'; // Make the dollar sign container visible
 
   // Ensure that a thread has been created before sending a message
   if (!state.threadId) {
@@ -99,7 +109,7 @@ async function getResponse() {
     if (!state.threadId) {
       writeToMessages('Error: No thread created. Please try again.', 'assistant');
       sendBtn.style.display = 'inline-block';
-      loadingSpinner.style.display = 'none';
+      loadingDollar.style.display = 'none';
       return;
     }
   }
@@ -123,7 +133,6 @@ async function getResponse() {
         let assistantResponseFound = false;
         data.messages.forEach((msg) => {
           if (msg.role === 'assistant') {
-            // Remove citations like "【number:number†source】" from the message content
             const filteredContent = msg.content.replace(/【\d+:\d+†source】/g, '');
             writeToMessages(marked.parse(filteredContent), 'assistant', true);
             assistantResponseFound = true;
@@ -153,11 +162,12 @@ async function getResponse() {
     console.error('Error fetching response:', error);
     writeToMessages('Error: Unable to communicate with the assistant.', 'assistant');
   } finally {
-    // Show the Send button and hide the loading spinner
+    // Show the Send button and hide the rotating dollar sign container
     sendBtn.style.display = 'inline-block';
-    loadingSpinner.style.display = 'none';
+    loadingDollar.style.display = 'none';
   }
 }
+
 
 function writeToMessages(message, role, isHTML = false) {
   const messageContainer = document.getElementById("message-container");
