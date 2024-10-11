@@ -1,4 +1,4 @@
-// Initiate the state object with the assistant_id and threadId as null and an empty array for messages
+// State object initialization
 let state = {
   assistant_id: null,
   assistant_name: null,
@@ -6,6 +6,7 @@ let state = {
   messages: [],
 };
 
+// Function to get the assistant
 async function getAssistant() {
   let name = document.getElementById('assistant_name').value;
   console.log(`Fetching assistant with name: ${name}`);
@@ -19,14 +20,18 @@ async function getAssistant() {
 
   state = await response.json(); // Update state with the assistant details
 
-  if (state.assistant_name) {
+  if (state.assistant_name && state.assistant_id) {
     writeToMessages(`Assistant ${state.assistant_name} is ready to chat`, 'system', false, true);
     console.log(`Assistant details: ${JSON.stringify(state)}`);
+
+    // Display the assistant_id in the respective field
+    document.getElementById('assistant_id').value = state.assistant_id;
   } else {
     writeToMessages('Error fetching assistant.', 'system', false, true);
   }
 }
 
+// Function to create a new thread
 async function getThread() {
   const response = await fetch('/api/threads', {
     method: 'POST',
@@ -41,6 +46,9 @@ async function getThread() {
     state.threadId = data.threadId;
     console.log(`New thread created with ID: ${state.threadId}`);
     writeToMessages('A new thread has been created. Start chatting!', 'system', false, true);
+
+    // Display the threadId in the respective field
+    document.getElementById('thread_id').value = state.threadId;
   } else {
     writeToMessages('Error creating thread.', 'system', false, true);
   }
@@ -56,6 +64,7 @@ window.onload = function () {
   loadingDollar.style.display = 'none';
 };
 
+// Function to get the assistant's response
 async function getResponse() {
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
@@ -107,6 +116,7 @@ async function getResponse() {
       data.message[0].text &&
       Array.isArray(data.message[0].text.value) &&
       data.message[0].text.value.length > 0 &&
+      data.message[0].text.value[0].text &&
       typeof data.message[0].text.value[0].text.value === 'string'
     ) {
       // Extract the text content from the nested structure
@@ -116,7 +126,8 @@ async function getResponse() {
 
       // Update the Current Run ID
       if (data.run_id) {
-        runIdField.value = data.run_id; // Display the run_id
+        state.run_id = data.run_id; // Update the state with the run_id
+        runIdField.value = state.run_id; // Display the run_id
       }
     } else {
       console.error('No valid message returned from the server.');
@@ -133,6 +144,7 @@ async function getResponse() {
 }
 
 
+// Function to write messages to the chat window
 function writeToMessages(message, role, isHTML = false, isSystemMessage = false) {
   const messageContainer = document.getElementById("message-container");
 
