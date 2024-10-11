@@ -65,11 +65,13 @@ window.onload = function () {
 };
 
 // Function to get the assistant's response
+// Function to get the assistant's response
 async function getResponse() {
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
   const loadingDollar = document.getElementById('loadingDollar');
   const runIdField = document.getElementById('run_id');
+  const agentContext = document.getElementById('agent_context');
   const message = messageInput.value;
 
   if (!message) {
@@ -129,6 +131,10 @@ async function getResponse() {
         state.run_id = data.run_id; // Update the state with the run_id
         runIdField.value = state.run_id; // Display the run_id
       }
+
+      // Update the Agent Context Window
+      agentContext.value = JSON.stringify(data, null, 2); // Display the entire response for debugging
+      agentContext.scrollTop = agentContext.scrollHeight; // Auto-scroll to the bottom
     } else {
       console.error('No valid message returned from the server.');
       writeToMessages('No valid message returned from the server.', 'assistant');
