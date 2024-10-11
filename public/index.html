@@ -13,6 +13,25 @@
         background-color: #121212;
         color: #ffffff;
       }
+      /* Dark theme for input fields and text areas */
+      .form-control,
+      #run_id,
+      #assistant_name,
+      #assistant_id,
+      #thread_id,
+      #agent_context {
+        background-color: #2c2c2c !important;
+        color: #ffffff !important;
+        border: 1px solid #444;
+        border-radius: 0.25rem;
+      }
+
+      /* Placeholder styling */
+      ::placeholder {
+        color: #cccccc !important; /* Match the color of system messages */
+        opacity: 1;
+      }
+
       .message-container {
         height: 200px;
         overflow-y: scroll;
@@ -22,61 +41,82 @@
         background-color: #2c2c2c;
         border-radius: 5px;
       }
+
       .message-wrapper {
         display: flex;
         width: 100%;
         margin-bottom: 10px;
       }
+
       .message {
         max-width: 75%;
         padding: 10px;
         border-radius: 10px;
         word-wrap: break-word;
+        font-size: 14px;
       }
+
+      /* Pastel colors for user and assistant messages */
       .message.user {
-        background-color: #0dcaf0;
+        background-color: #a8d5e2; /* Pastel blue */
         color: #121212;
         margin-left: auto;
         text-align: right;
       }
+
       .message.assistant {
-        background-color: #ffc107;
+        background-color: #ffdcb2; /* Pastel orange */
         color: #121212;
         margin-right: auto;
         text-align: left;
       }
-      .align-button {
-        margin-top: 32px; /* Adjust this value as needed for perfect alignment */
+
+      .system-message {
+        color: #cccccc;
+        font-style: italic;
+        margin-bottom: 10px;
       }
-      .spinner-border {
+
+      .btn {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: #ffffff;
+      }
+
+      .btn:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+      }
+
+      .rotating-dollar-container {
         display: none;
+        background-color: #28a745;
+        color: #ffffff;
+        font-size: 24px;
+        width: 75px;
+        height: 38px;
+        border-radius: 0.25rem;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      }
+
+      .rotating-dollar {
+        animation: rotate 1s linear infinite;
       }
 
       @keyframes rotate {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-  .rotating-dollar-container {
-    display: none;
-    background-color: #28a745; /* Same green as the "Send" button */
-    color: #ffffff; /* White dollar sign */
-    font-size: 24px;
-    width: 75px; /* Same width as the "Send" button */
-    height: 38px; /* Same height as the "Send" button */
-    border-radius: 0.25rem;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-  }
-
-  .rotating-dollar {
-    animation: rotate 1s linear infinite;
-  }
+      .align-button {
+        margin-top: 32px; /* Adjust as needed to align with the input field */
+      }
     </style>
     <!-- Marked.js for Markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -117,8 +157,8 @@
 
       <!-- Row for Create New Thread Button and Thread ID -->
       <div class="row mb-3">
-        <div class="col-md-6">
-          <button id="newThreadBtn" class="btn btn-primary w-100 align-button" onclick="getThread()">
+        <div class="col-md-6 align-button">
+          <button id="newThreadBtn" class="btn btn-primary w-100" onclick="getThread()">
             Create New Thread
           </button>
         </div>
