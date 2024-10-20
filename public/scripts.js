@@ -65,7 +65,6 @@ window.onload = function () {
 };
 
 // Function to get the assistant's response
-// Function to get the assistant's response
 async function getResponse() {
   const messageInput = document.getElementById('messageInput');
   const sendBtn = document.getElementById('sendBtn');
@@ -124,7 +123,13 @@ async function getResponse() {
       // Extract the text content from the nested structure
       let content = data.message[0].text.value[0].text.value;
       content = content.replace(/【\d+:\d+†[\w.]+】/g, ''); // Remove citations if any
-      writeToMessages(marked.parse(content), 'assistant', true);
+      
+      // Ensure 'marked' is available
+      if (typeof marked !== 'undefined') {
+        writeToMessages(marked.parse(content), 'assistant', true);
+      } else {
+        writeToMessages(content, 'assistant'); // Fallback if 'marked' is not available
+      }
 
       // Update the Current Run ID
       if (data.run_id) {
@@ -148,7 +153,6 @@ async function getResponse() {
     loadingDollar.style.display = 'none';
   }
 }
-
 
 // Function to write messages to the chat window
 function writeToMessages(message, role, isHTML = false, isSystemMessage = false) {
